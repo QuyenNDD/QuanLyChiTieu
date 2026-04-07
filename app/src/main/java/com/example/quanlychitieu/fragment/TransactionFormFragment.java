@@ -174,26 +174,18 @@ public class TransactionFormFragment extends Fragment {
 
     private void loadCategoriesFromLocal() {
         categoryList.clear();
-
         if ("expense".equals(currentType)) {
-            categoryList.add(new Category("Ăn uống"));
-            categoryList.add(new Category("Quần áo"));
-            categoryList.add(new Category("Đi lại"));
-            categoryList.add(new Category("Y tế"));
-            categoryList.add(new Category("Giáo dục"));
-            categoryList.add(new Category("Tiền nhà"));
-            categoryList.add(new Category("Phí liên lạc"));
-            categoryList.add(new Category("Mỹ phẩm"));
-            categoryList.add(new Category("Khác"));
+            categoryList.add(new Category("Ăn uống", "EXPENSE"));
+            categoryList.add(new Category("Ăn uống", "EXPENSE"));
+            categoryList.add(new Category("Ăn uống", "EXPENSE"));
+            categoryList.add(new Category("Ăn uống", "EXPENSE"));
+            categoryList.add(new Category("Chỉnh sửa", "EXPENSE", true));
         } else {
-            categoryList.add(new Category("Lương"));
-            categoryList.add(new Category("Thưởng"));
-            categoryList.add(new Category("Bán hàng"));
-            categoryList.add(new Category("Đầu tư"));
-            categoryList.add(new Category("Hoàn tiền"));
-            categoryList.add(new Category("Khác"));
+            categoryList.add(new Category("Lương", "INCOME"));
+            categoryList.add(new Category("Lương", "INCOME"));
+            categoryList.add(new Category("Lương", "INCOME"));
+            categoryList.add(new Category("Chỉnh sửa", "INCOME", true));
         }
-
         categoryAdapter.notifyDataSetChanged();
     }
 }

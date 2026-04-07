@@ -4,6 +4,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -35,6 +36,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
         Category category = categoryList.get(position);
         holder.tvCategoryName.setText(category.getName());
 
+
         if (position == selectedPosition) {
             holder.itemView.setBackgroundResource(R.drawable.bg_category_selected);
         } else {
@@ -42,6 +44,9 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
         }
 
         holder.itemView.setOnClickListener(v -> {
+            if (category.isEditItem()){
+                Toast.makeText(v.getContext(), "Man hinh chinh sua", Toast.LENGTH_SHORT).show();
+            }
             int oldPosition = selectedPosition;
             selectedPosition = holder.getAdapterPosition();
             notifyItemChanged(oldPosition);
