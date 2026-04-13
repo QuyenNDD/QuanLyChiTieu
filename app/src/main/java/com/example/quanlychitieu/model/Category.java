@@ -17,6 +17,10 @@ public class Category {
         this.isEditItem = isEditItem;
     }
 
+    public Category(int id, String name, String type) {
+        this(id, name, type, false);
+    }
+
     public Category(String name, String type, boolean isEditItem) {
         this.name = name;
         this.type = type;

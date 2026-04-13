@@ -1,6 +1,7 @@
 package com.example.quanlychitieu.fragment;
 
 import android.app.DatePickerDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,6 +15,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.quanlychitieu.R;
+import com.example.quanlychitieu.activity.ManageCategoryActivity;
 import com.example.quanlychitieu.adapter.CategoryAdapter;
 import com.example.quanlychitieu.model.Category;
 
@@ -68,7 +70,18 @@ public class TransactionFormFragment extends Fragment {
         rvCategories = view.findViewById(R.id.rvCategories);
         rvCategories.setLayoutManager(new GridLayoutManager(requireContext(), 3));
 
-        categoryAdapter = new CategoryAdapter(categoryList);
+        categoryAdapter = new CategoryAdapter(categoryList, new CategoryAdapter.OnCategoryClickListener() {
+            @Override
+            public void onEditItemClick() {
+                Intent intent = new Intent(requireContext(), ManageCategoryActivity.class);
+                startActivity(intent);
+            }
+
+            @Override
+            public void onCategoryClick(Category category, int position) {
+                // xử lý chọn category bình thường nếu cần
+            }
+        });
         rvCategories.setAdapter(categoryAdapter);
 
         selectedCalendar.setTimeInMillis(System.currentTimeMillis());

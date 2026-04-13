@@ -1,26 +1,33 @@
 package com.example.quanlychitieu.adapter;
 
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.quanlychitieu.R;
+import com.example.quanlychitieu.activity.ManageCategoryActivity;
 import com.example.quanlychitieu.model.Category;
 
 import java.util.List;
 
 public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.CategoryViewHolder> {
+    public interface OnCategoryClickListener {
+        void onEditItemClick();
+        void onCategoryClick(Category category, int position);
+    }
 
     private final List<Category> categoryList;
     private int selectedPosition = 0;
+    private final OnCategoryClickListener listener;
 
-    public CategoryAdapter(List<Category> categoryList) {
+    public CategoryAdapter(List<Category> categoryList, OnCategoryClickListener listener) {
         this.categoryList = categoryList;
+        this.listener = listener;
     }
 
     @NonNull
@@ -36,7 +43,6 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
         Category category = categoryList.get(position);
         holder.tvCategoryName.setText(category.getName());
 
-
         if (position == selectedPosition) {
             holder.itemView.setBackgroundResource(R.drawable.bg_category_selected);
         } else {
@@ -44,9 +50,12 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
         }
 
         holder.itemView.setOnClickListener(v -> {
-            if (category.isEditItem()){
-                Toast.makeText(v.getContext(), "Man hinh chinh sua", Toast.LENGTH_SHORT).show();
+            if (category.isEditItem()) {
+                Intent intent = new Intent(v.getContext(), ManageCategoryActivity.class);
+                v.getContext().startActivity(intent);
+                return;
             }
+
             int oldPosition = selectedPosition;
             selectedPosition = holder.getAdapterPosition();
             notifyItemChanged(oldPosition);
