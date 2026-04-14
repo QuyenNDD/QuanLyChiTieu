@@ -13,6 +13,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 
+import com.example.quanlychitieu.fragment.ReportFragment;
 import com.example.quanlychitieu.fragment.TransactionFormFragment;
 import com.example.quanlychitieu.utils.SimpleTextFragment;
 
@@ -76,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
 
         tabReport.setOnClickListener(v -> {
             setSelectedTab(2);
-            replaceFragment(SimpleTextFragment.newInstance("Màn hình Báo cáo"));
+            replaceFragment(new ReportFragment());
         });
 
         tabBudget.setOnClickListener(v -> {
