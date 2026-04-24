@@ -21,6 +21,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".activity.ManageCategoryActivity"/>
+        <activity android:name=".activity.AddEditCategoryActivity" />
     </application>
 
 </manifest>

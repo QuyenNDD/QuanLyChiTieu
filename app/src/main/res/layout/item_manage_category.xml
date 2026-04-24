@@ -8,8 +8,7 @@
     app:cardCornerRadius="0dp"
     app:cardElevation="0dp"
     app:strokeColor="#181818"
-    app:strokeWidth="0.5dp"
-    >
+    app:strokeWidth="0.5dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -17,6 +16,15 @@
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingHorizontal="14dp">
+
+        <ImageView
+            android:id="@+id/imgDelete"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginEnd="10dp"
+            android:src="@android:drawable/ic_delete"
+            android:visibility="gone"
+            app:tint="#FF4D4F" />
 
         <View
             android:id="@+id/viewFakeIcon"
@@ -39,6 +47,14 @@
             android:layout_width="18dp"
             android:layout_height="18dp"
             android:src="@android:drawable/ic_media_next"
+            app:tint="#8C8C8C" />
+
+        <ImageView
+            android:id="@+id/imgDrag"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:src="@android:drawable/ic_menu_sort_by_size"
+            android:visibility="gone"
             app:tint="#8C8C8C" />
 
     </LinearLayout>

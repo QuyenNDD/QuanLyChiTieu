@@ -1,6 +1,5 @@
 package com.example.quanlychitieu.adapter;
 
-import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,20 +9,19 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.quanlychitieu.R;
-import com.example.quanlychitieu.activity.ManageCategoryActivity;
 import com.example.quanlychitieu.model.Category;
 
 import java.util.List;
 
 public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.CategoryViewHolder> {
+
     public interface OnCategoryClickListener {
-        void onEditItemClick();
         void onCategoryClick(Category category, int position);
     }
 
     private final List<Category> categoryList;
-    private int selectedPosition = 0;
     private final OnCategoryClickListener listener;
+    private int selectedPosition = 0;
 
     public CategoryAdapter(List<Category> categoryList, OnCategoryClickListener listener) {
         this.categoryList = categoryList;
@@ -50,22 +48,48 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
         }
 
         holder.itemView.setOnClickListener(v -> {
-            if (category.isEditItem()) {
-                Intent intent = new Intent(v.getContext(), ManageCategoryActivity.class);
-                v.getContext().startActivity(intent);
+            int adapterPosition = holder.getAdapterPosition();
+            if (adapterPosition == RecyclerView.NO_POSITION) {
                 return;
             }
 
             int oldPosition = selectedPosition;
-            selectedPosition = holder.getAdapterPosition();
+            selectedPosition = adapterPosition;
+
             notifyItemChanged(oldPosition);
             notifyItemChanged(selectedPosition);
+
+            if (listener != null) {
+                listener.onCategoryClick(category, adapterPosition);
+            }
         });
     }
 
     @Override
     public int getItemCount() {
-        return categoryList.size();
+        return categoryList == null ? 0 : categoryList.size();
+    }
+
+    public void clearSelection() {
+        int oldPosition = selectedPosition;
+        selectedPosition = RecyclerView.NO_POSITION;
+        if (oldPosition != RecyclerView.NO_POSITION) {
+            notifyItemChanged(oldPosition);
+        }
+    }
+
+    public int getSelectedPosition() {
+        return selectedPosition;
+    }
+
+    public Category getSelectedCategory() {
+        if (categoryList == null || categoryList.isEmpty()) {
+            return null;
+        }
+        if (selectedPosition < 0 || selectedPosition >= categoryList.size()) {
+            return null;
+        }
+        return categoryList.get(selectedPosition);
     }
 
     static class CategoryViewHolder extends RecyclerView.ViewHolder {

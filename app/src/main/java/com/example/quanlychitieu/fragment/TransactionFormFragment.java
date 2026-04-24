@@ -3,10 +3,13 @@ package com.example.quanlychitieu.fragment;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -17,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.quanlychitieu.R;
 import com.example.quanlychitieu.activity.ManageCategoryActivity;
 import com.example.quanlychitieu.adapter.CategoryAdapter;
+import com.example.quanlychitieu.database.CategoryDao;
 import com.example.quanlychitieu.model.Category;
 
 import java.text.SimpleDateFormat;
@@ -27,6 +31,10 @@ import java.util.Locale;
 
 public class TransactionFormFragment extends Fragment {
 
+    private static final String TYPE_EXPENSE = "EXPENSE";
+    private static final String TYPE_INCOME = "INCOME";
+    private static final String EDIT_CATEGORY_NAME = "Chỉnh sửa";
+
     private TextView tvPreviousDate;
     private TextView tvSelectedDate;
     private TextView tvNextDate;
@@ -36,12 +44,19 @@ public class TransactionFormFragment extends Fragment {
     private TextView tvAmountLabel;
     private TextView btnSubmit;
 
+    private EditText edtNote;
+    private EditText edtAmount;
+
     private RecyclerView rvCategories;
     private CategoryAdapter categoryAdapter;
-    private final List<Category> categoryList = new ArrayList<>();
 
+    private final List<Category> categoryList = new ArrayList<>();
     private final Calendar selectedCalendar = Calendar.getInstance();
-    private String currentType = "expense";
+
+    private String currentType = TYPE_EXPENSE;
+    private Category selectedCategory;
+
+    private CategoryDao categoryDao;
 
     public TransactionFormFragment() {
     }
@@ -58,6 +73,18 @@ public class TransactionFormFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        initViews(view);
+        categoryDao = new CategoryDao(requireContext());
+        setupRecyclerView();
+        setupEvents();
+
+        selectedCalendar.setTimeInMillis(System.currentTimeMillis());
+        updateDisplayedDate();
+        updateTransactionTypeUI();
+        loadCategoriesFromDatabase();
+    }
+
+    private void initViews(@NonNull View view) {
         tvPreviousDate = view.findViewById(R.id.tvPreviousDate);
         tvSelectedDate = view.findViewById(R.id.tvSelectedDate);
         tvNextDate = view.findViewById(R.id.tvNextDate);
@@ -67,26 +94,42 @@ public class TransactionFormFragment extends Fragment {
         tvAmountLabel = view.findViewById(R.id.tvAmountLabel);
         btnSubmit = view.findViewById(R.id.btnSubmit);
 
+        edtNote = view.findViewById(R.id.edtNote);
+        edtAmount = view.findViewById(R.id.edtAmount);
+
         rvCategories = view.findViewById(R.id.rvCategories);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        loadCategoriesFromDatabase();
+    }
+    private void setupRecyclerView() {
         rvCategories.setLayoutManager(new GridLayoutManager(requireContext(), 3));
 
         categoryAdapter = new CategoryAdapter(categoryList, new CategoryAdapter.OnCategoryClickListener() {
             @Override
-            public void onEditItemClick() {
-                Intent intent = new Intent(requireContext(), ManageCategoryActivity.class);
-                startActivity(intent);
-            }
-
-            @Override
             public void onCategoryClick(Category category, int position) {
-                // xử lý chọn category bình thường nếu cần
+                if (EDIT_CATEGORY_NAME.equalsIgnoreCase(category.getName())) {
+                    openManageCategoryScreen();
+                    return;
+                }
+
+                selectedCategory = category;
+
+                Toast.makeText(
+                        requireContext(),
+                        "Đã chọn danh mục: " + category.getName(),
+                        Toast.LENGTH_SHORT
+                ).show();
             }
         });
+
         rvCategories.setAdapter(categoryAdapter);
+    }
 
-        selectedCalendar.setTimeInMillis(System.currentTimeMillis());
-        updateDisplayedDate();
-
+    private void setupEvents() {
         tvPreviousDate.setOnClickListener(v -> {
             selectedCalendar.add(Calendar.DAY_OF_MONTH, -1);
             updateDisplayedDate();
@@ -100,19 +143,26 @@ public class TransactionFormFragment extends Fragment {
         tvSelectedDate.setOnClickListener(v -> showDatePicker());
 
         tvExpenseTab.setOnClickListener(v -> {
-            currentType = "expense";
+            currentType = TYPE_EXPENSE;
+            selectedCategory = null;
             updateTransactionTypeUI();
-            loadCategoriesFromLocal();
+            loadCategoriesFromDatabase();
         });
 
         tvIncomeTab.setOnClickListener(v -> {
-            currentType = "income";
+            currentType = TYPE_INCOME;
+            selectedCategory = null;
             updateTransactionTypeUI();
-            loadCategoriesFromLocal();
+            loadCategoriesFromDatabase();
         });
 
-        updateTransactionTypeUI();
-        loadCategoriesFromLocal();
+        btnSubmit.setOnClickListener(v -> submitTransaction());
+    }
+
+    private void openManageCategoryScreen() {
+        Intent intent = new Intent(requireContext(), ManageCategoryActivity.class);
+        intent.putExtra(ManageCategoryActivity.EXTRA_CATEGORY_TYPE, currentType);
+        startActivity(intent);
     }
 
     private void showDatePicker() {
@@ -122,7 +172,7 @@ public class TransactionFormFragment extends Fragment {
 
         DatePickerDialog dialog = new DatePickerDialog(
                 requireContext(),
-                (view, selectedYear, selectedMonth, selectedDayOfMonth) -> {
+                (picker, selectedYear, selectedMonth, selectedDayOfMonth) -> {
                     selectedCalendar.set(Calendar.YEAR, selectedYear);
                     selectedCalendar.set(Calendar.MONTH, selectedMonth);
                     selectedCalendar.set(Calendar.DAY_OF_MONTH, selectedDayOfMonth);
@@ -164,7 +214,7 @@ public class TransactionFormFragment extends Fragment {
     }
 
     private void updateTransactionTypeUI() {
-        if ("expense".equals(currentType)) {
+        if (TYPE_EXPENSE.equals(currentType)) {
             tvExpenseTab.setBackgroundResource(R.drawable.bg_tab_selected);
             tvIncomeTab.setBackground(null);
 
@@ -185,20 +235,59 @@ public class TransactionFormFragment extends Fragment {
         }
     }
 
-    private void loadCategoriesFromLocal() {
+    private void loadCategoriesFromDatabase() {
         categoryList.clear();
-        if ("expense".equals(currentType)) {
-            categoryList.add(new Category("Ăn uống", "EXPENSE"));
-            categoryList.add(new Category("Ăn uống", "EXPENSE"));
-            categoryList.add(new Category("Ăn uống", "EXPENSE"));
-            categoryList.add(new Category("Ăn uống", "EXPENSE"));
-            categoryList.add(new Category("Chỉnh sửa", "EXPENSE", true));
+
+        if (TYPE_EXPENSE.equals(currentType)) {
+            categoryList.addAll(categoryDao.getCategoriesByType(TYPE_EXPENSE));
+            categoryList.add(new Category("Chỉnh sửa", TYPE_EXPENSE));
         } else {
-            categoryList.add(new Category("Lương", "INCOME"));
-            categoryList.add(new Category("Lương", "INCOME"));
-            categoryList.add(new Category("Lương", "INCOME"));
-            categoryList.add(new Category("Chỉnh sửa", "INCOME", true));
+            categoryList.addAll(categoryDao.getCategoriesByType(TYPE_INCOME));
+            categoryList.add(new Category("Chỉnh sửa", TYPE_INCOME));
         }
+
         categoryAdapter.notifyDataSetChanged();
+    }
+
+    private void submitTransaction() {
+        String note = edtNote != null ? edtNote.getText().toString().trim() : "";
+        String amountText = edtAmount != null ? edtAmount.getText().toString().trim() : "";
+
+        if (TextUtils.isEmpty(amountText) || "0".equals(amountText)) {
+            Toast.makeText(requireContext(), "Vui lòng nhập số tiền", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (selectedCategory == null) {
+            Toast.makeText(requireContext(), "Vui lòng chọn danh mục", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String selectedDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                .format(selectedCalendar.getTime());
+
+        double amount;
+        try {
+            amount = Double.parseDouble(amountText);
+        } catch (NumberFormatException e) {
+            Toast.makeText(requireContext(), "Số tiền không hợp lệ", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Toast.makeText(
+                requireContext(),
+                "Loại: " + currentType
+                        + "\nDanh mục: " + selectedCategory.getName()
+                        + "\nSố tiền: " + amount
+                        + "\nNgày: " + selectedDate
+                        + "\nGhi chú: " + note,
+                Toast.LENGTH_LONG
+        ).show();
+
+        // TODO:
+        // 1. Lấy userId hiện tại từ Session / SharedPreferences
+        // 2. Tạo object Transaction
+        // 3. Gọi TransactionDao hoặc DBHelper để insert vào database
+        // 4. Sau khi lưu thành công thì reset form hoặc chuyển màn hình
     }
 }
