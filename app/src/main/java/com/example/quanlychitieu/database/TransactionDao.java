@@ -1,92 +1,82 @@
 package com.example.quanlychitieu.database;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Color;
 
-import com.example.quanlychitieu.model.ReportItem;
+import com.example.quanlychitieu.model.Transaction;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class TransactionDao {
-    private DBHelper dbHelper;
+
+    private final DBHelper dbHelper;
 
     public TransactionDao(Context context) {
         dbHelper = new DBHelper(context);
     }
 
-    // Hàm lấy dữ liệu báo cáo theo tháng và năm
-    public List<ReportItem> getReportData(int month, int year, String type) {
-        List<ReportItem> list = new ArrayList<>();
+    public long insertTransaction(Transaction transaction) {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        ContentValues values = new ContentValues();
+
+        values.put("user_id", transaction.getUserId());
+        values.put("category_id", transaction.getCategoryId());
+        values.put("amount", transaction.getAmount());
+        values.put("note", transaction.getNote());
+        values.put("transaction_date", transaction.getTransactionDate());
+        values.put("type", transaction.getType());
+
+        long result = db.insert("transactions", null, values);
+        db.close();
+        return result;
+    }
+
+    public List<Transaction> getTransactionsByUser(int userId) {
+        List<Transaction> transactionList = new ArrayList<>();
         SQLiteDatabase db = dbHelper.getReadableDatabase();
 
-        // 1. Tạo mẫu tìm kiếm: ví dụ "2026-04-%"
-        String monthStr = String.format("%02d", month);
-        String datePattern = year + "-" + monthStr + "-%";
-
-        // 2. Tính TỔNG CỘNG của cả tháng trước để chia tỉ lệ %
-        double grandTotal = 0;
-        Cursor cursorTotal = db.rawQuery(
-                "SELECT SUM(amount) FROM transactions WHERE transaction_date LIKE ? AND type = ?",
-                new String[]{datePattern, type});
-        if (cursorTotal.moveToFirst()) {
-            grandTotal = cursorTotal.getDouble(0);
-        }
-        cursorTotal.close();
-
-        // 3. Truy vấn gom nhóm theo Danh mục
-        String sql = "SELECT c.name, SUM(t.amount) as total " +
-                "FROM transactions t " +
-                "JOIN categories c ON t.category_id = c.id " +
-                "WHERE t.transaction_date LIKE ? AND t.type = ? " +
-                "GROUP BY c.name " +
-                "ORDER BY total DESC";
-
-        Cursor cursor = db.rawQuery(sql, new String[]{datePattern, type});
-
-        // 4. Mảng màu sắc cho biểu đồ (Bạn có thể tùy chỉnh thêm)
-        int[] colorPalette = {
-                Color.parseColor("#FF5722"), Color.parseColor("#2196F3"),
-                Color.parseColor("#4CAF50"), Color.parseColor("#FFEB3B"),
-                Color.parseColor("#9C27B0"), Color.parseColor("#00BCD4")
-        };
-        int colorIndex = 0;
+        Cursor cursor = db.rawQuery(
+                "SELECT id, user_id, category_id, amount, note, transaction_date, type, created_at " +
+                        "FROM transactions WHERE user_id = ? " +
+                        "ORDER BY transaction_date DESC, id DESC",
+                new String[]{String.valueOf(userId)}
+        );
 
         if (cursor.moveToFirst()) {
             do {
-                String name = cursor.getString(0);
-                double amount = cursor.getDouble(1);
+                Transaction transaction = new Transaction(
+                        cursor.getInt(cursor.getColumnIndexOrThrow("id")),
+                        cursor.getInt(cursor.getColumnIndexOrThrow("user_id")),
+                        cursor.getInt(cursor.getColumnIndexOrThrow("category_id")),
+                        cursor.getDouble(cursor.getColumnIndexOrThrow("amount")),
+                        cursor.getString(cursor.getColumnIndexOrThrow("note")),
+                        cursor.getString(cursor.getColumnIndexOrThrow("transaction_date")),
+                        cursor.getString(cursor.getColumnIndexOrThrow("type")),
+                        cursor.getString(cursor.getColumnIndexOrThrow("created_at"))
+                );
 
-                // Tính phần trăm
-                double percentage = (grandTotal > 0) ? (amount / grandTotal * 100) : 0;
-
-                // Lấy màu từ mảng (xoay vòng nếu quá nhiều danh mục)
-                int color = colorPalette[colorIndex % colorPalette.length];
-
-                list.add(new ReportItem(name, amount, percentage, color));
-                colorIndex++;
+                transactionList.add(transaction);
             } while (cursor.moveToNext());
         }
+
         cursor.close();
-        return list;
+        db.close();
+        return transactionList;
     }
-    public double getTotalAmountByMonth(int month, int year, String type) {
-        double total = 0;
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
 
-        String monthStr = String.format("%02d", month);
-        String datePattern = year + "-" + monthStr + "-%";
+    public int deleteTransaction(int transactionId, int userId) {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
 
-        Cursor cursor = db.rawQuery(
-                "SELECT SUM(amount) FROM transactions WHERE transaction_date LIKE ? AND type = ?",
-                new String[]{datePattern, type});
+        int result = db.delete(
+                "transactions",
+                "id = ? AND user_id = ?",
+                new String[]{String.valueOf(transactionId), String.valueOf(userId)}
+        );
 
-        if (cursor.moveToFirst()) {
-            total = cursor.getDouble(0);
-        }
-        cursor.close();
-        return total;
+        db.close();
+        return result;
     }
 }

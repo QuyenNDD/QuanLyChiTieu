@@ -26,11 +26,12 @@
             android:visibility="gone"
             app:tint="#FF4D4F" />
 
-        <View
-            android:id="@+id/viewFakeIcon"
-            android:layout_width="18dp"
-            android:layout_height="18dp"
-            android:background="@drawable/bg_fake_category_icon" />
+        <ImageView
+            android:id="@+id/imgCategoryIcon"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/ic_cat_food"
+            android:scaleType="fitCenter" />
 
         <TextView
             android:id="@+id/txtCategoryName"

@@ -22,6 +22,9 @@ import com.example.quanlychitieu.activity.ManageCategoryActivity;
 import com.example.quanlychitieu.adapter.CategoryAdapter;
 import com.example.quanlychitieu.database.CategoryDao;
 import com.example.quanlychitieu.model.Category;
+import com.example.quanlychitieu.preference.SessionManager;
+import com.example.quanlychitieu.database.TransactionDao;
+import com.example.quanlychitieu.model.Transaction;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -35,6 +38,7 @@ public class TransactionFormFragment extends Fragment {
     private static final String TYPE_INCOME = "INCOME";
     private static final String EDIT_CATEGORY_NAME = "Chỉnh sửa";
 
+    private int currentUserId;
     private TextView tvPreviousDate;
     private TextView tvSelectedDate;
     private TextView tvNextDate;
@@ -58,6 +62,8 @@ public class TransactionFormFragment extends Fragment {
 
     private CategoryDao categoryDao;
 
+    private TransactionDao transactionDao;
+
     public TransactionFormFragment() {
     }
 
@@ -75,6 +81,8 @@ public class TransactionFormFragment extends Fragment {
 
         initViews(view);
         categoryDao = new CategoryDao(requireContext());
+        transactionDao = new TransactionDao(requireContext());
+        currentUserId = SessionManager.getCurrentUserId(requireContext());
         setupRecyclerView();
         setupEvents();
 
@@ -239,10 +247,10 @@ public class TransactionFormFragment extends Fragment {
         categoryList.clear();
 
         if (TYPE_EXPENSE.equals(currentType)) {
-            categoryList.addAll(categoryDao.getCategoriesByType(TYPE_EXPENSE));
+            categoryList.addAll(categoryDao.getCategoriesByType(currentUserId, TYPE_EXPENSE));
             categoryList.add(new Category("Chỉnh sửa", TYPE_EXPENSE));
         } else {
-            categoryList.addAll(categoryDao.getCategoriesByType(TYPE_INCOME));
+            categoryList.addAll(categoryDao.getCategoriesByType(currentUserId, TYPE_INCOME));
             categoryList.add(new Category("Chỉnh sửa", TYPE_INCOME));
         }
 
@@ -253,7 +261,7 @@ public class TransactionFormFragment extends Fragment {
         String note = edtNote != null ? edtNote.getText().toString().trim() : "";
         String amountText = edtAmount != null ? edtAmount.getText().toString().trim() : "";
 
-        if (TextUtils.isEmpty(amountText) || "0".equals(amountText)) {
+        if (amountText.isEmpty()) {
             Toast.makeText(requireContext(), "Vui lòng nhập số tiền", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -263,9 +271,6 @@ public class TransactionFormFragment extends Fragment {
             return;
         }
 
-        String selectedDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-                .format(selectedCalendar.getTime());
-
         double amount;
         try {
             amount = Double.parseDouble(amountText);
@@ -274,20 +279,39 @@ public class TransactionFormFragment extends Fragment {
             return;
         }
 
-        Toast.makeText(
-                requireContext(),
-                "Loại: " + currentType
-                        + "\nDanh mục: " + selectedCategory.getName()
-                        + "\nSố tiền: " + amount
-                        + "\nNgày: " + selectedDate
-                        + "\nGhi chú: " + note,
-                Toast.LENGTH_LONG
-        ).show();
+        if (amount <= 0) {
+            Toast.makeText(requireContext(), "Số tiền phải lớn hơn 0", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-        // TODO:
-        // 1. Lấy userId hiện tại từ Session / SharedPreferences
-        // 2. Tạo object Transaction
-        // 3. Gọi TransactionDao hoặc DBHelper để insert vào database
-        // 4. Sau khi lưu thành công thì reset form hoặc chuyển màn hình
+        String transactionDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                .format(selectedCalendar.getTime());
+
+        Transaction transaction = new Transaction(
+                currentUserId,
+                selectedCategory.getId(),
+                amount,
+                note,
+                transactionDate,
+                currentType
+        );
+
+        long result = transactionDao.insertTransaction(transaction);
+
+        if (result > 0) {
+            Toast.makeText(requireContext(), "Lưu giao dịch thành công", Toast.LENGTH_SHORT).show();
+            clearFormAfterSave();
+        } else {
+            Toast.makeText(requireContext(), "Lưu giao dịch thất bại", Toast.LENGTH_SHORT).show();
+        }
+    }
+    private void clearFormAfterSave() {
+        edtAmount.setText("");
+        edtNote.setText("");
+        selectedCategory = null;
+
+        if (categoryAdapter != null) {
+            categoryAdapter.clearSelection();
+        }
     }
 }

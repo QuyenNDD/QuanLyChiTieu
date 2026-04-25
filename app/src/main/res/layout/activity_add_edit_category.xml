@@ -5,64 +5,61 @@
     android:layout_height="match_parent"
     android:background="#000000">
 
-    <LinearLayout
-        android:id="@+id/topBar"
+    <ImageButton
+        android:id="@+id/btnBack"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:background="@android:color/transparent"
+        android:contentDescription="Quay lại"
+        android:src="@android:drawable/ic_media_previous"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@android:color/white" />
+
+    <TextView
+        android:id="@+id/tvTitle"
         android:layout_width="0dp"
-        android:layout_height="56dp"
-        android:background="#000000"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingHorizontal="12dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="Tạo mới"
+        android:textColor="@android:color/white"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@id/btnBack"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="@id/btnBack" />
 
-        <ImageButton
-            android:id="@+id/btnBack"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:background="@android:color/transparent"
-            android:src="@android:drawable/ic_media_previous"
-            app:tint="@android:color/white" />
+    <View
+        android:id="@+id/dividerTop"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginTop="10dp"
+        android:background="#111111"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btnBack" />
 
-        <TextView
-            android:id="@+id/tvTitle"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="Tạo mới"
-            android:textColor="@android:color/white"
-            android:textSize="24sp"
-            android:textStyle="bold" />
-
-        <View
-            android:layout_width="36dp"
-            android:layout_height="36dp" />
-    </LinearLayout>
-
-    <ScrollView
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollContent"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintTop_toBottomOf="@id/dividerTop"
         app:layout_constraintBottom_toTopOf="@id/btnSave"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/topBar">
+        app:layout_constraintEnd_toEndOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="20dp"
-                android:background="#111111" />
-
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:background="#000000"
+                android:layout_height="56dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:paddingHorizontal="16dp">
@@ -82,78 +79,78 @@
                     android:layout_weight="1"
                     android:background="@android:color/transparent"
                     android:hint="Vui lòng nhập vào tên đề mục"
-                    android:textColorHint="#9B9B9B"
-                    android:inputType="textPersonName"
+                    android:paddingVertical="8dp"
                     android:textColor="@android:color/white"
-                    android:textSize="18sp" />
+                    android:textColorHint="#888888"
+                    android:textSize="17sp" />
             </LinearLayout>
 
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:background="#1A1A1A" />
+                android:background="#141414" />
 
             <TextView
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:paddingStart="16dp"
-                android:paddingTop="18dp"
-                android:paddingBottom="12dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="18dp"
                 android:text="Biểu tượng"
                 android:textColor="@android:color/white"
-                android:textSize="18sp"
+                android:textSize="20sp"
                 android:textStyle="bold" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvIcons"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false"
-                android:paddingHorizontal="12dp" />
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="14dp"
+                android:layout_marginEnd="16dp"
+                android:nestedScrollingEnabled="false" />
 
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:layout_marginTop="16dp"
-                android:background="#1A1A1A" />
+                android:layout_marginTop="18dp"
+                android:background="#141414" />
 
             <TextView
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:paddingStart="16dp"
-                android:paddingTop="18dp"
-                android:paddingBottom="12dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="18dp"
                 android:text="Màu sắc"
                 android:textColor="@android:color/white"
-                android:textSize="18sp"
+                android:textSize="20sp"
                 android:textStyle="bold" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvColors"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false"
-                android:paddingHorizontal="12dp" />
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="14dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="24dp"
+                android:nestedScrollingEnabled="false" />
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="20dp" />
         </LinearLayout>
-    </ScrollView>
+    </androidx.core.widget.NestedScrollView>
 
-    <TextView
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnSave"
         android:layout_width="0dp"
-        android:layout_height="52dp"
-        android:layout_marginStart="28dp"
-        android:layout_marginEnd="28dp"
-        android:layout_marginBottom="28dp"
-        android:background="@drawable/bg_save_button"
-        android:gravity="center"
+        android:layout_height="54dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
         android:text="Lưu"
-        android:textColor="@android:color/white"
-        android:textSize="20sp"
-        android:textStyle="bold"
+        android:textAllCaps="false"
+        android:textColor="#BDBDBD"
+        android:textSize="18sp"
+        app:backgroundTint="#3E3E3E"
+        app:cornerRadius="27dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

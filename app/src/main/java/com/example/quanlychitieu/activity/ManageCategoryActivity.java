@@ -19,6 +19,7 @@ import com.example.quanlychitieu.model.Category;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.google.android.material.card.MaterialCardView;
+import com.example.quanlychitieu.preference.SessionManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +28,7 @@ public class ManageCategoryActivity extends AppCompatActivity {
 
     public static final String TYPE_EXPENSE = "EXPENSE";
     public static final String TYPE_INCOME = "INCOME";
+    private int currentUserId;
 
     private RecyclerView rvCategory;
     private ManageCategoryAdapter adapter;
@@ -68,7 +70,7 @@ public class ManageCategoryActivity extends AppCompatActivity {
                     return;
                 }
 
-                Category category = new Category(id, name.trim(), type, icon, color);
+                Category category = new Category(id, currentUserId, name.trim(), type, icon, color, 0, 0);
 
                 if (AddEditCategoryActivity.MODE_ADD.equals(mode)) {
                     long resultId = categoryDao.insertCategory(category);
@@ -95,13 +97,14 @@ public class ManageCategoryActivity extends AppCompatActivity {
         setContentView(R.layout.activity_manage_category);
 
         categoryDao = new CategoryDao(this);
+        currentUserId = SessionManager.getCurrentUserId(this);
 
         initViews();
         readIntentData();
         setupRecyclerView();
         setupEvents();
 
-        seedDefaultCategoriesIfNeeded();
+        loadCategoriesFromDatabase();
 
         if (TYPE_INCOME.equals(currentType)) {
             toggleGroupType.check(R.id.btnIncome);
@@ -154,7 +157,7 @@ public class ManageCategoryActivity extends AppCompatActivity {
 
             @Override
             public void onDeleteClick(Category category, int position) {
-                int result = categoryDao.deleteCategory(category.getId());
+                int result = categoryDao.deleteCategory(category.getId(), currentUserId);
                 if (result > 0) {
                     Toast.makeText(ManageCategoryActivity.this, "Xóa danh mục thành công", Toast.LENGTH_SHORT).show();
                     loadCategoriesFromDatabase();
@@ -206,33 +209,8 @@ public class ManageCategoryActivity extends AppCompatActivity {
 
     private void loadCategoriesFromDatabase() {
         categoryList.clear();
-        categoryList.addAll(categoryDao.getCategoriesByType(currentType));
+        categoryList.addAll(categoryDao.getCategoriesByType(currentUserId, currentType));
         adapter.setData(categoryList);
-    }
-
-    private void seedDefaultCategoriesIfNeeded() {
-        List<Category> expenseList = categoryDao.getCategoriesByType(TYPE_EXPENSE);
-        if (expenseList.isEmpty()) {
-            categoryDao.insertCategory(new Category("Ăn uống", TYPE_EXPENSE, "🍽️", 0xFFFF9800));
-            categoryDao.insertCategory(new Category("Chi tiêu hàng ngày", TYPE_EXPENSE, "🧴", 0xFF00C853));
-            categoryDao.insertCategory(new Category("Quần áo", TYPE_EXPENSE, "👕", 0xFF1E40AF));
-            categoryDao.insertCategory(new Category("Mỹ phẩm", TYPE_EXPENSE, "💄", 0xFFEC4899));
-            categoryDao.insertCategory(new Category("Phí giao lưu", TYPE_EXPENSE, "🎉", 0xFFFF4D5A));
-            categoryDao.insertCategory(new Category("Y tế", TYPE_EXPENSE, "👥", 0xFF67D695));
-            categoryDao.insertCategory(new Category("Giáo dục", TYPE_EXPENSE, "📚", 0xFFF2AE72));
-            categoryDao.insertCategory(new Category("Tiền điện", TYPE_EXPENSE, "🚰", 0xFF29B6F6));
-            categoryDao.insertCategory(new Category("Đi lại", TYPE_EXPENSE, "🚆", 0xFFFFB020));
-            categoryDao.insertCategory(new Category("Phí liên lạc", TYPE_EXPENSE, "📱", 0xFF8D8D8D));
-            categoryDao.insertCategory(new Category("Tiền nhà", TYPE_EXPENSE, "🏠", 0xFFB7794B));
-            categoryDao.insertCategory(new Category("Tiết kiệm", TYPE_EXPENSE, "💰", 0xFF9C27B0));
-        }
-
-        List<Category> incomeList = categoryDao.getCategoriesByType(TYPE_INCOME);
-        if (incomeList.isEmpty()) {
-            categoryDao.insertCategory(new Category("Tiền lương", TYPE_INCOME, "💰", 0xFFFF9800));
-            categoryDao.insertCategory(new Category("Tiền thưởng", TYPE_INCOME, "🎁", 0xFFEC4899));
-            categoryDao.insertCategory(new Category("Thu nhập phụ", TYPE_INCOME, "🛒", 0xFF1E40AF));
-        }
     }
 
     @Override

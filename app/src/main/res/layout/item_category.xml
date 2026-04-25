@@ -13,8 +13,9 @@
         android:id="@+id/ivCategoryIcon"
         android:layout_width="28dp"
         android:layout_height="28dp"
-        android:src="@android:drawable/ic_menu_gallery"
-        app:tint="#FF9800" />
+        android:layout_marginBottom="8dp"
+        android:src="@drawable/ic_cat_food"
+        android:scaleType="fitCenter" />
 
     <TextView
         android:id="@+id/tvCategoryName"

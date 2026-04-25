@@ -30,12 +30,14 @@ public class DBHelper extends SQLiteOpenHelper {
         // 2. Bảng Categories
         String createTableCategories = "CREATE TABLE categories (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "user_id INTEGER NOT NULL, " +
                 "name TEXT NOT NULL, " +
                 "type TEXT NOT NULL, " +
                 "icon TEXT, " +
                 "color_value INTEGER, " +
                 "created_at INTEGER, " +
-                "updated_at INTEGER" +
+                "updated_at INTEGER, " +
+                "FOREIGN KEY(user_id) REFERENCES users(id)" +
                 ")";
         db.execSQL(createTableCategories);
 

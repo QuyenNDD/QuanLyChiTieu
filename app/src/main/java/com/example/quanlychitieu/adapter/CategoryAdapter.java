@@ -3,9 +3,11 @@ package com.example.quanlychitieu.adapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.widget.ImageViewCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.quanlychitieu.R;
@@ -41,6 +43,8 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
         Category category = categoryList.get(position);
         holder.tvCategoryName.setText(category.getName());
 
+        bindCategoryIcon(holder, category);
+
         if (position == selectedPosition) {
             holder.itemView.setBackgroundResource(R.drawable.bg_category_selected);
         } else {
@@ -63,6 +67,35 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
                 listener.onCategoryClick(category, adapterPosition);
             }
         });
+    }
+
+    private void bindCategoryIcon(@NonNull CategoryViewHolder holder, @NonNull Category category) {
+        if ("Chỉnh sửa".equalsIgnoreCase(category.getName())) {
+            holder.ivCategoryIcon.setImageResource(R.drawable.arrow);
+            holder.ivCategoryIcon.clearColorFilter();
+            return;
+        }
+
+        String iconName = category.getIcon();
+
+        if (iconName == null || iconName.trim().isEmpty()) {
+            holder.ivCategoryIcon.setImageResource(R.drawable.ic_cat_food);
+            holder.ivCategoryIcon.clearColorFilter();
+            return;
+        }
+
+        int iconResId = holder.itemView.getContext()
+                .getResources()
+                .getIdentifier(iconName, "drawable",
+                        holder.itemView.getContext().getPackageName());
+
+        if (iconResId != 0) {
+            holder.ivCategoryIcon.setImageResource(iconResId);
+        } else {
+            holder.ivCategoryIcon.setImageResource(R.drawable.ic_cat_food);
+        }
+
+        holder.ivCategoryIcon.setColorFilter(category.getColorValue());
     }
 
     @Override
@@ -93,10 +126,12 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
     }
 
     static class CategoryViewHolder extends RecyclerView.ViewHolder {
+        ImageView ivCategoryIcon;
         TextView tvCategoryName;
 
         public CategoryViewHolder(@NonNull View itemView) {
             super(itemView);
+            ivCategoryIcon = itemView.findViewById(R.id.ivCategoryIcon);
             tvCategoryName = itemView.findViewById(R.id.tvCategoryName);
         }
     }

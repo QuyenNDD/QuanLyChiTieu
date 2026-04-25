@@ -24,6 +24,7 @@ public class CategoryDao {
 
         long now = System.currentTimeMillis();
 
+        values.put("user_id", category.getUserId());
         values.put("name", category.getName());
         values.put("type", category.getType());
         values.put("icon", category.getIcon());
@@ -49,40 +50,47 @@ public class CategoryDao {
         int result = db.update(
                 "categories",
                 values,
-                "id = ?",
-                new String[]{String.valueOf(category.getId())}
+                "id = ? AND user_id = ?",
+                new String[]{
+                        String.valueOf(category.getId()),
+                        String.valueOf(category.getUserId())
+                }
         );
 
         db.close();
         return result;
     }
 
-    public int deleteCategory(int categoryId) {
+    public int deleteCategory(int categoryId, int userId) {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
         int result = db.delete(
                 "categories",
-                "id = ?",
-                new String[]{String.valueOf(categoryId)}
+                "id = ? AND user_id = ?",
+                new String[]{
+                        String.valueOf(categoryId),
+                        String.valueOf(userId)
+                }
         );
 
         db.close();
         return result;
     }
 
-    public List<Category> getCategoriesByType(String type) {
+    public List<Category> getCategoriesByType(int userId, String type) {
         List<Category> categoryList = new ArrayList<>();
         SQLiteDatabase db = dbHelper.getReadableDatabase();
 
         Cursor cursor = db.rawQuery(
-                "SELECT id, name, type, icon, color_value, created_at, updated_at " +
-                        "FROM categories WHERE type = ? ORDER BY id ASC",
-                new String[]{type}
+                "SELECT id, user_id, name, type, icon, color_value, created_at, updated_at " +
+                        "FROM categories WHERE user_id = ? AND type = ? ORDER BY id ASC",
+                new String[]{String.valueOf(userId), type}
         );
 
         if (cursor.moveToFirst()) {
             do {
                 int id = cursor.getInt(cursor.getColumnIndexOrThrow("id"));
+                int ownerUserId = cursor.getInt(cursor.getColumnIndexOrThrow("user_id"));
                 String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
                 String categoryType = cursor.getString(cursor.getColumnIndexOrThrow("type"));
                 String icon = cursor.getString(cursor.getColumnIndexOrThrow("icon"));
@@ -92,6 +100,7 @@ public class CategoryDao {
 
                 Category category = new Category(
                         id,
+                        ownerUserId,
                         name,
                         categoryType,
                         icon,
@@ -107,50 +116,5 @@ public class CategoryDao {
         cursor.close();
         db.close();
         return categoryList;
-    }
-
-    public Category getCategoryById(int categoryId) {
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
-        Category category = null;
-
-        Cursor cursor = db.rawQuery(
-                "SELECT id, name, type, icon, color_value, created_at, updated_at " +
-                        "FROM categories WHERE id = ?",
-                new String[]{String.valueOf(categoryId)}
-        );
-
-        if (cursor.moveToFirst()) {
-            int id = cursor.getInt(cursor.getColumnIndexOrThrow("id"));
-            String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
-            String type = cursor.getString(cursor.getColumnIndexOrThrow("type"));
-            String icon = cursor.getString(cursor.getColumnIndexOrThrow("icon"));
-            int colorValue = cursor.getInt(cursor.getColumnIndexOrThrow("color_value"));
-            long createdAt = cursor.getLong(cursor.getColumnIndexOrThrow("created_at"));
-            long updatedAt = cursor.getLong(cursor.getColumnIndexOrThrow("updated_at"));
-
-            category = new Category(id, name, type, icon, colorValue, createdAt, updatedAt);
-        }
-
-        cursor.close();
-        db.close();
-        return category;
-    }
-
-    public boolean isCategoryNameExists(String name, String type) {
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
-        boolean exists = false;
-
-        Cursor cursor = db.rawQuery(
-                "SELECT id FROM categories WHERE name = ? AND type = ?",
-                new String[]{name, type}
-        );
-
-        if (cursor.moveToFirst()) {
-            exists = true;
-        }
-
-        cursor.close();
-        db.close();
-        return exists;
     }
 }

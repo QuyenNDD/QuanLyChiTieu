@@ -47,14 +47,6 @@ public class ManageCategoryAdapter extends RecyclerView.Adapter<ManageCategoryAd
         return isEditMode;
     }
 
-    public void removeItem(int position) {
-        if (position >= 0 && position < categoryList.size()) {
-            categoryList.remove(position);
-            notifyItemRemoved(position);
-            notifyItemRangeChanged(position, categoryList.size());
-        }
-    }
-
     @NonNull
     @Override
     public CategoryViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -68,9 +60,7 @@ public class ManageCategoryAdapter extends RecyclerView.Adapter<ManageCategoryAd
         Category category = categoryList.get(position);
 
         holder.txtCategoryName.setText(category.getName());
-
-        // Có thể thay bằng icon thật sau này
-        holder.viewFakeIcon.setVisibility(View.VISIBLE);
+        bindCategoryIcon(holder, category);
 
         if (isEditMode) {
             holder.imgDelete.setVisibility(View.VISIBLE);
@@ -105,13 +95,35 @@ public class ManageCategoryAdapter extends RecyclerView.Adapter<ManageCategoryAd
         });
     }
 
+    private void bindCategoryIcon(@NonNull CategoryViewHolder holder, @NonNull Category category) {
+        String iconName = category.getIcon();
+
+        if (iconName == null || iconName.trim().isEmpty()) {
+            holder.imgCategoryIcon.setImageResource(R.drawable.ic_cat_food);
+            return;
+        }
+
+        int iconResId = holder.itemView.getContext()
+                .getResources()
+                .getIdentifier(iconName, "drawable",
+                        holder.itemView.getContext().getPackageName());
+
+        if (iconResId != 0) {
+            holder.imgCategoryIcon.setImageResource(iconResId);
+        } else {
+            holder.imgCategoryIcon.setImageResource(R.drawable.ic_cat_food);
+        }
+
+        holder.imgCategoryIcon.setColorFilter(category.getColorValue());
+    }
+
     @Override
     public int getItemCount() {
         return categoryList.size();
     }
 
     static class CategoryViewHolder extends RecyclerView.ViewHolder {
-        View viewFakeIcon;
+        ImageView imgCategoryIcon;
         TextView txtCategoryName;
         ImageView imgArrow;
         ImageView imgDelete;
@@ -119,7 +131,7 @@ public class ManageCategoryAdapter extends RecyclerView.Adapter<ManageCategoryAd
 
         public CategoryViewHolder(@NonNull View itemView) {
             super(itemView);
-            viewFakeIcon = itemView.findViewById(R.id.viewFakeIcon);
+            imgCategoryIcon = itemView.findViewById(R.id.imgCategoryIcon);
             txtCategoryName = itemView.findViewById(R.id.txtCategoryName);
             imgArrow = itemView.findViewById(R.id.imgArrow);
             imgDelete = itemView.findViewById(R.id.imgDelete);

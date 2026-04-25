@@ -2,8 +2,9 @@ package com.example.quanlychitieu.model;
 
 public class Category {
     private int id;
+    private int userId;
     private String name;
-    private String type; // EXPENSE hoặc INCOME
+    private String type;
     private String icon;
     private int colorValue;
     private long createdAt;
@@ -12,8 +13,10 @@ public class Category {
     public Category() {
     }
 
-    public Category(int id, String name, String type, String icon, int colorValue, long createdAt, long updatedAt) {
+    public Category(int id, int userId, String name, String type,
+                    String icon, int colorValue, long createdAt, long updatedAt) {
         this.id = id;
+        this.userId = userId;
         this.name = name;
         this.type = type;
         this.icon = icon;
@@ -22,20 +25,16 @@ public class Category {
         this.updatedAt = updatedAt;
     }
 
-    public Category(int id, String name, String type, String icon, int colorValue) {
-        this(id, name, type, icon, colorValue, 0, 0);
+    public Category(int userId, String name, String type, String icon, int colorValue) {
+        this(0, userId, name, type, icon, colorValue, 0, 0);
     }
 
-    public Category(String name, String type, String icon, int colorValue) {
-        this(0, name, type, icon, colorValue, 0, 0);
-    }
-
-    public Category(int id, String name, String type) {
-        this(id, name, type, "", 0, 0, 0);
+    public Category(int id, int userId, String name, String type, String icon, int colorValue) {
+        this(id, userId, name, type, icon, colorValue, 0, 0);
     }
 
     public Category(String name, String type) {
-        this(0, name, type, "", 0, 0, 0);
+        this(0, 0, name, type, "", 0, 0, 0);
     }
 
     public int getId() {
@@ -44,6 +43,14 @@ public class Category {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public int getUserId() {
+        return userId;
+    }
+
+    public void setUserId(int userId) {
+        this.userId = userId;
     }
 
     public String getName() {
