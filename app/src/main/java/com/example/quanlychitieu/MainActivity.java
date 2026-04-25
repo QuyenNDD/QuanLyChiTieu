@@ -13,11 +13,11 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 
+import com.example.quanlychitieu.adapter.MoreFragment;
 import com.example.quanlychitieu.fragment.ReportFragment;
-import com.example.quanlychitieu.fragment.TransactionFormFragment;
 import com.example.quanlychitieu.utils.SimpleTextFragment;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity {
 
     private LinearLayout tabInput, tabCalendar, tabReport, tabBudget, tabMore;
     private ImageView iconInput, iconCalendar, iconReport, iconBudget, iconMore;
@@ -40,7 +40,6 @@ public class MainActivity extends AppCompatActivity {
 
         if (savedInstanceState == null) {
             setSelectedTab(0);
-            replaceFragment(new TransactionFormFragment());
         }
     }
 
@@ -67,7 +66,6 @@ public class MainActivity extends AppCompatActivity {
     private void initEvents() {
         tabInput.setOnClickListener(v -> {
             setSelectedTab(0);
-            replaceFragment(new TransactionFormFragment());
         });
 
         tabCalendar.setOnClickListener(v -> {
@@ -87,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
 
         tabMore.setOnClickListener(v -> {
             setSelectedTab(4);
-            replaceFragment(SimpleTextFragment.newInstance("Màn hình Khác"));
+            replaceFragment(new MoreFragment());
         });
     }
 

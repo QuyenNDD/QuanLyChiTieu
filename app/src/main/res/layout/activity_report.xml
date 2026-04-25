@@ -10,26 +10,50 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
+        android:layout_height="43dp"
+        android:background="@android:color/white"
+        android:elevation="4dp">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Báo cáo"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_centerInParent="true"/>
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/layoutSelectDate"
+        android:layout_width="match_parent"
         android:layout_height="56dp"
         android:background="@color/purple_500"
-        android:padding="16dp">
+        android:paddingHorizontal="16dp">
 
         <TextView
             android:id="@+id/tvSelectDate"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="100dp"
+            android:layout_centerInParent="true"
             android:text="Tháng 04/2026"
-            android:gravity="center"
-            android:layout_gravity="center"
-            android:textColor="@android:color/black"
+            android:textColor="@android:color/white"
             android:textStyle="bold"
-            android:textSize="18sp"
+            android:textSize="20sp"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <ImageView
+            android:id="@+id/ivCalendarIcon"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:src="@android:drawable/ic_menu_my_calendar"
+            android:contentDescription="Chọn ngày"
             android:clickable="true"
             android:focusable="true"
-            android:background="@color/purple_200"
-            android:drawablePadding="8dp"
-            android:layout_centerInParent="true"/>
+            android:background="?attr/selectableItemBackgroundBorderless"
+            app:tint="@android:color/white" />
+
     </RelativeLayout>
 
     <androidx.cardview.widget.CardView
