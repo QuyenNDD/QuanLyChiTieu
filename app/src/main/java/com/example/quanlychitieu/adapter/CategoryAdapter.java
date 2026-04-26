@@ -135,4 +135,22 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
             tvCategoryName = itemView.findViewById(R.id.tvCategoryName);
         }
     }
+    public void setSelectedCategoryId(int categoryId) {
+        int oldPosition = selectedPosition;
+        selectedPosition = -1;
+
+        for (int i = 0; i < categoryList.size(); i++) {
+            if (categoryList.get(i).getId() == categoryId) {
+                selectedPosition = i;
+                break;
+            }
+        }
+
+        if (oldPosition >= 0) {
+            notifyItemChanged(oldPosition);
+        }
+        if (selectedPosition >= 0) {
+            notifyItemChanged(selectedPosition);
+        }
+    }
 }

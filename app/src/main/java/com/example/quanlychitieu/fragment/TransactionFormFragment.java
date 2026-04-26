@@ -1,5 +1,6 @@
 package com.example.quanlychitieu.fragment;
 
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
@@ -7,7 +8,9 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -21,10 +24,11 @@ import com.example.quanlychitieu.R;
 import com.example.quanlychitieu.activity.ManageCategoryActivity;
 import com.example.quanlychitieu.adapter.CategoryAdapter;
 import com.example.quanlychitieu.database.CategoryDao;
-import com.example.quanlychitieu.model.Category;
-import com.example.quanlychitieu.preference.SessionManager;
 import com.example.quanlychitieu.database.TransactionDao;
+import com.example.quanlychitieu.model.Category;
 import com.example.quanlychitieu.model.Transaction;
+import com.example.quanlychitieu.model.TransactionWithCategory;
+import com.example.quanlychitieu.preference.SessionManager;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -34,43 +38,67 @@ import java.util.Locale;
 
 public class TransactionFormFragment extends Fragment {
 
-    private static final String TYPE_EXPENSE = "EXPENSE";
-    private static final String TYPE_INCOME = "INCOME";
-    private static final String EDIT_CATEGORY_NAME = "Chỉnh sửa";
+    private static final String ARG_SELECTED_DATE = "arg_selected_date";
+    private static final String ARG_SHOW_SKIP = "arg_show_skip";
 
-    private int currentUserId;
-    private TextView tvPreviousDate;
-    private TextView tvSelectedDate;
-    private TextView tvNextDate;
+    private static final String ARG_EDIT_TRANSACTION_ID = "arg_edit_transaction_id";
 
+    public static final String TYPE_EXPENSE = "EXPENSE";
+    public static final String TYPE_INCOME = "INCOME";
+
+    private TextView tvSkip;
     private TextView tvExpenseTab;
     private TextView tvIncomeTab;
+    private TextView tvSelectedDate;
+    private TextView tvPreviousDate;
+    private TextView tvNextDate;
     private TextView tvAmountLabel;
-    private TextView btnSubmit;
-
+    private Button btnSubmit;
     private EditText edtNote;
     private EditText edtAmount;
-
+    private ImageView ivEdit;
     private RecyclerView rvCategories;
-    private CategoryAdapter categoryAdapter;
 
-    private final List<Category> categoryList = new ArrayList<>();
+    private TextView tvDelete;
+
     private final Calendar selectedCalendar = Calendar.getInstance();
+    private final List<Category> categoryList = new ArrayList<>();
 
-    private String currentType = TYPE_EXPENSE;
-    private Category selectedCategory;
-
+    private CategoryAdapter categoryAdapter;
     private CategoryDao categoryDao;
-
     private TransactionDao transactionDao;
+
+    private Category selectedCategory;
+    private String currentType = TYPE_EXPENSE;
+    private int currentUserId;
+    private boolean showSkipButton = false;
+
+    private int editingTransactionId = -1;
+    private boolean isEditMode = false;
 
     public TransactionFormFragment() {
     }
 
+    public static TransactionFormFragment newInstance(boolean showSkip) {
+        TransactionFormFragment fragment = new TransactionFormFragment();
+        Bundle args = new Bundle();
+        args.putBoolean(ARG_SHOW_SKIP, showSkip);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    public static TransactionFormFragment newInstance(String selectedDate, boolean showSkip) {
+        TransactionFormFragment fragment = new TransactionFormFragment();
+        Bundle args = new Bundle();
+        args.putString(ARG_SELECTED_DATE, selectedDate);
+        args.putBoolean(ARG_SHOW_SKIP, showSkip);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             @Nullable ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_transaction_form, container, false);
     }
@@ -80,32 +108,23 @@ public class TransactionFormFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         initViews(view);
+
         categoryDao = new CategoryDao(requireContext());
         transactionDao = new TransactionDao(requireContext());
         currentUserId = SessionManager.getCurrentUserId(requireContext());
+
+        readArguments();
         setupRecyclerView();
-        setupEvents();
-
-        selectedCalendar.setTimeInMillis(System.currentTimeMillis());
-        updateDisplayedDate();
-        updateTransactionTypeUI();
+        setupListeners();
+        setupSkipButton();
+        setupDeleteButton();
         loadCategoriesFromDatabase();
-    }
-
-    private void initViews(@NonNull View view) {
-        tvPreviousDate = view.findViewById(R.id.tvPreviousDate);
-        tvSelectedDate = view.findViewById(R.id.tvSelectedDate);
-        tvNextDate = view.findViewById(R.id.tvNextDate);
-
-        tvExpenseTab = view.findViewById(R.id.tvExpenseTab);
-        tvIncomeTab = view.findViewById(R.id.tvIncomeTab);
-        tvAmountLabel = view.findViewById(R.id.tvAmountLabel);
-        btnSubmit = view.findViewById(R.id.btnSubmit);
-
-        edtNote = view.findViewById(R.id.edtNote);
-        edtAmount = view.findViewById(R.id.edtAmount);
-
-        rvCategories = view.findViewById(R.id.rvCategories);
+        if (isEditMode) {
+            loadTransactionForEdit();
+        } else {
+            updateDateText();
+            updateTypeUI();
+        }
     }
 
     @Override
@@ -113,58 +132,168 @@ public class TransactionFormFragment extends Fragment {
         super.onResume();
         loadCategoriesFromDatabase();
     }
-    private void setupRecyclerView() {
-        rvCategories.setLayoutManager(new GridLayoutManager(requireContext(), 3));
 
-        categoryAdapter = new CategoryAdapter(categoryList, new CategoryAdapter.OnCategoryClickListener() {
-            @Override
-            public void onCategoryClick(Category category, int position) {
-                if (EDIT_CATEGORY_NAME.equalsIgnoreCase(category.getName())) {
-                    openManageCategoryScreen();
-                    return;
+    private void initViews(@NonNull View view) {
+        tvSkip = view.findViewById(R.id.tvSkip);
+        tvExpenseTab = view.findViewById(R.id.tvExpenseTab);
+        tvIncomeTab = view.findViewById(R.id.tvIncomeTab);
+        tvSelectedDate = view.findViewById(R.id.tvSelectedDate);
+        tvPreviousDate = view.findViewById(R.id.tvPreviousDate);
+        tvNextDate = view.findViewById(R.id.tvNextDate);
+        tvAmountLabel = view.findViewById(R.id.tvAmountLabel);
+        btnSubmit = view.findViewById(R.id.btnSubmit);
+        edtNote = view.findViewById(R.id.edtNote);
+        edtAmount = view.findViewById(R.id.edtAmount);
+        ivEdit = view.findViewById(R.id.ivEdit);
+        rvCategories = view.findViewById(R.id.rvCategories);
+        tvDelete = view.findViewById(R.id.tvDelete);
+    }
+
+    private void readArguments() {
+        Bundle args = getArguments();
+        if (args == null) {
+            return;
+        }
+
+        showSkipButton = args.getBoolean(ARG_SHOW_SKIP, false);
+
+        editingTransactionId = args.getInt(ARG_EDIT_TRANSACTION_ID, -1);
+        isEditMode = editingTransactionId > 0;
+
+        String selectedDate = args.getString(ARG_SELECTED_DATE);
+        if (!TextUtils.isEmpty(selectedDate)) {
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                java.util.Date date = sdf.parse(selectedDate);
+                if (date != null) {
+                    selectedCalendar.setTime(date);
                 }
-
-                selectedCategory = category;
-
-                Toast.makeText(
-                        requireContext(),
-                        "Đã chọn danh mục: " + category.getName(),
-                        Toast.LENGTH_SHORT
-                ).show();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
+        }
+    }
+
+    private void setupRecyclerView() {
+        categoryAdapter = new CategoryAdapter(categoryList, (category, position) -> {
+            if (category == null) {
+                return;
+            }
+
+            if (isEditItem(category)) {
+                openManageCategoryScreen();
+                return;
+            }
+
+            selectedCategory = category;
         });
 
+        rvCategories.setLayoutManager(new GridLayoutManager(requireContext(), 4));
         rvCategories.setAdapter(categoryAdapter);
     }
 
-    private void setupEvents() {
-        tvPreviousDate.setOnClickListener(v -> {
-            selectedCalendar.add(Calendar.DAY_OF_MONTH, -1);
-            updateDisplayedDate();
-        });
-
-        tvNextDate.setOnClickListener(v -> {
-            selectedCalendar.add(Calendar.DAY_OF_MONTH, 1);
-            updateDisplayedDate();
-        });
-
-        tvSelectedDate.setOnClickListener(v -> showDatePicker());
-
+    private void setupListeners() {
         tvExpenseTab.setOnClickListener(v -> {
             currentType = TYPE_EXPENSE;
             selectedCategory = null;
-            updateTransactionTypeUI();
+            categoryAdapter.clearSelection();
+            updateTypeUI();
             loadCategoriesFromDatabase();
         });
 
         tvIncomeTab.setOnClickListener(v -> {
             currentType = TYPE_INCOME;
             selectedCategory = null;
-            updateTransactionTypeUI();
+            categoryAdapter.clearSelection();
+            updateTypeUI();
             loadCategoriesFromDatabase();
         });
 
+        tvSelectedDate.setOnClickListener(v -> showDatePicker());
+
+        tvPreviousDate.setOnClickListener(v -> {
+            selectedCalendar.add(Calendar.DAY_OF_MONTH, -1);
+            updateDateText();
+        });
+
+        tvNextDate.setOnClickListener(v -> {
+            selectedCalendar.add(Calendar.DAY_OF_MONTH, 1);
+            updateDateText();
+        });
+
+        ivEdit.setOnClickListener(v -> openManageCategoryScreen());
+
         btnSubmit.setOnClickListener(v -> submitTransaction());
+    }
+
+    private void setupSkipButton() {
+        tvSkip.setVisibility(showSkipButton ? View.VISIBLE : View.GONE);
+        tvSkip.setOnClickListener(v -> closeFormAndBack());
+    }
+
+    private void updateTypeUI() {
+        if (TYPE_EXPENSE.equals(currentType)) {
+            tvExpenseTab.setBackgroundResource(R.drawable.bg_tab_selected);
+            tvIncomeTab.setBackgroundResource(android.R.color.transparent);
+            tvExpenseTab.setTextColor(0xFFFFFFFF);
+            tvIncomeTab.setTextColor(0xFFC9C9C9);
+            tvAmountLabel.setText("Tiền chi");
+
+            if (isEditMode) {
+                btnSubmit.setText("Chỉnh sửa khoản chi");
+            } else {
+                btnSubmit.setText("Nhập khoản chi");
+            }
+        } else {
+            tvIncomeTab.setBackgroundResource(R.drawable.bg_tab_selected);
+            tvExpenseTab.setBackgroundResource(android.R.color.transparent);
+            tvIncomeTab.setTextColor(0xFFFFFFFF);
+            tvExpenseTab.setTextColor(0xFFC9C9C9);
+            tvAmountLabel.setText("Tiền thu");
+
+            if (isEditMode) {
+                btnSubmit.setText("Chỉnh sửa khoản thu");
+            } else {
+                btnSubmit.setText("Nhập khoản thu");
+            }
+        }
+    }
+
+    private void updateDateText() {
+        SimpleDateFormat displayFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+        tvSelectedDate.setText(displayFormat.format(selectedCalendar.getTime()));
+    }
+
+    private void showDatePicker() {
+        DatePickerDialog dialog = new DatePickerDialog(
+                requireContext(),
+                (view, year, month, dayOfMonth) -> {
+                    selectedCalendar.set(Calendar.YEAR, year);
+                    selectedCalendar.set(Calendar.MONTH, month);
+                    selectedCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+                    updateDateText();
+                },
+                selectedCalendar.get(Calendar.YEAR),
+                selectedCalendar.get(Calendar.MONTH),
+                selectedCalendar.get(Calendar.DAY_OF_MONTH)
+        );
+        dialog.show();
+    }
+
+    private void loadCategoriesFromDatabase() {
+        categoryList.clear();
+        categoryList.addAll(categoryDao.getCategoriesByType(currentUserId, currentType));
+
+        Category editItem = new Category("Chỉnh sửa", currentType);
+        editItem.setIcon("ic_arrow_right");
+        editItem.setColorValue(0xFFFFFFFF);
+        categoryList.add(editItem);
+
+        categoryAdapter.notifyDataSetChanged();
+    }
+
+    private boolean isEditItem(Category category) {
+        return category.getId() == 0 && "Chỉnh sửa".equalsIgnoreCase(category.getName());
     }
 
     private void openManageCategoryScreen() {
@@ -173,100 +302,16 @@ public class TransactionFormFragment extends Fragment {
         startActivity(intent);
     }
 
-    private void showDatePicker() {
-        int year = selectedCalendar.get(Calendar.YEAR);
-        int month = selectedCalendar.get(Calendar.MONTH);
-        int day = selectedCalendar.get(Calendar.DAY_OF_MONTH);
-
-        DatePickerDialog dialog = new DatePickerDialog(
-                requireContext(),
-                (picker, selectedYear, selectedMonth, selectedDayOfMonth) -> {
-                    selectedCalendar.set(Calendar.YEAR, selectedYear);
-                    selectedCalendar.set(Calendar.MONTH, selectedMonth);
-                    selectedCalendar.set(Calendar.DAY_OF_MONTH, selectedDayOfMonth);
-                    updateDisplayedDate();
-                },
-                year,
-                month,
-                day
-        );
-
-        dialog.show();
-    }
-
-    private void updateDisplayedDate() {
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-        String displayText = sdf.format(selectedCalendar.getTime()) + " (" + getVietnameseDayOfWeek(selectedCalendar) + ")";
-        tvSelectedDate.setText(displayText);
-    }
-
-    private String getVietnameseDayOfWeek(Calendar calendar) {
-        switch (calendar.get(Calendar.DAY_OF_WEEK)) {
-            case Calendar.MONDAY:
-                return "Th 2";
-            case Calendar.TUESDAY:
-                return "Th 3";
-            case Calendar.WEDNESDAY:
-                return "Th 4";
-            case Calendar.THURSDAY:
-                return "Th 5";
-            case Calendar.FRIDAY:
-                return "Th 6";
-            case Calendar.SATURDAY:
-                return "Th 7";
-            case Calendar.SUNDAY:
-                return "CN";
-            default:
-                return "";
-        }
-    }
-
-    private void updateTransactionTypeUI() {
-        if (TYPE_EXPENSE.equals(currentType)) {
-            tvExpenseTab.setBackgroundResource(R.drawable.bg_tab_selected);
-            tvIncomeTab.setBackground(null);
-
-            tvExpenseTab.setTextColor(0xFFFFFFFF);
-            tvIncomeTab.setTextColor(0xFFC9C9C9);
-
-            tvAmountLabel.setText("Tiền chi");
-            btnSubmit.setText("Nhập khoản chi");
-        } else {
-            tvIncomeTab.setBackgroundResource(R.drawable.bg_tab_selected);
-            tvExpenseTab.setBackground(null);
-
-            tvIncomeTab.setTextColor(0xFFFFFFFF);
-            tvExpenseTab.setTextColor(0xFFC9C9C9);
-
-            tvAmountLabel.setText("Tiền thu");
-            btnSubmit.setText("Nhập khoản thu");
-        }
-    }
-
-    private void loadCategoriesFromDatabase() {
-        categoryList.clear();
-
-        if (TYPE_EXPENSE.equals(currentType)) {
-            categoryList.addAll(categoryDao.getCategoriesByType(currentUserId, TYPE_EXPENSE));
-            categoryList.add(new Category("Chỉnh sửa", TYPE_EXPENSE));
-        } else {
-            categoryList.addAll(categoryDao.getCategoriesByType(currentUserId, TYPE_INCOME));
-            categoryList.add(new Category("Chỉnh sửa", TYPE_INCOME));
-        }
-
-        categoryAdapter.notifyDataSetChanged();
-    }
-
     private void submitTransaction() {
-        String note = edtNote != null ? edtNote.getText().toString().trim() : "";
-        String amountText = edtAmount != null ? edtAmount.getText().toString().trim() : "";
+        String amountText = edtAmount.getText().toString().trim().replace(",", "");
+        String note = edtNote.getText().toString().trim();
 
-        if (amountText.isEmpty()) {
+        if (TextUtils.isEmpty(amountText)) {
             Toast.makeText(requireContext(), "Vui lòng nhập số tiền", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        if (selectedCategory == null) {
+        if (selectedCategory == null || selectedCategory.getId() <= 0) {
             Toast.makeText(requireContext(), "Vui lòng chọn danh mục", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -296,22 +341,128 @@ public class TransactionFormFragment extends Fragment {
                 currentType
         );
 
-        long result = transactionDao.insertTransaction(transaction);
+        if (isEditMode) {
+            transaction.setId(editingTransactionId);
 
-        if (result > 0) {
-            Toast.makeText(requireContext(), "Lưu giao dịch thành công", Toast.LENGTH_SHORT).show();
-            clearFormAfterSave();
+            int result = transactionDao.updateTransaction(transaction);
+
+            if (result > 0) {
+                Toast.makeText(requireContext(), "Cập nhật giao dịch thành công", Toast.LENGTH_SHORT).show();
+                closeFormAndBack();
+            } else {
+                Toast.makeText(requireContext(), "Cập nhật giao dịch thất bại", Toast.LENGTH_SHORT).show();
+            }
         } else {
-            Toast.makeText(requireContext(), "Lưu giao dịch thất bại", Toast.LENGTH_SHORT).show();
+            long result = transactionDao.insertTransaction(transaction);
+
+            if (result > 0) {
+                Toast.makeText(requireContext(), "Lưu giao dịch thành công", Toast.LENGTH_SHORT).show();
+
+                if (showSkipButton) {
+                    closeFormAndBack();
+                } else {
+                    clearFormAfterSave();
+                }
+            } else {
+                Toast.makeText(requireContext(), "Lưu giao dịch thất bại", Toast.LENGTH_SHORT).show();
+            }
         }
     }
+
     private void clearFormAfterSave() {
         edtAmount.setText("");
         edtNote.setText("");
         selectedCategory = null;
+        categoryAdapter.clearSelection();
+    }
 
-        if (categoryAdapter != null) {
-            categoryAdapter.clearSelection();
+    private void closeFormAndBack() {
+        if (!isAdded()) {
+            return;
+        }
+
+        if (requireActivity().getSupportFragmentManager().getBackStackEntryCount() > 0) {
+            requireActivity().getSupportFragmentManager().popBackStack();
+        }
+    }
+    public static TransactionFormFragment newEditInstance(int transactionId, boolean showSkip) {
+        TransactionFormFragment fragment = new TransactionFormFragment();
+        Bundle args = new Bundle();
+        args.putInt(ARG_EDIT_TRANSACTION_ID, transactionId);
+        args.putBoolean(ARG_SHOW_SKIP, showSkip);
+        fragment.setArguments(args);
+        return fragment;
+    }
+    private Category findCategoryById(int categoryId) {
+        for (Category category : categoryList) {
+            if (category.getId() == categoryId) {
+                return category;
+            }
+        }
+        return null;
+    }
+    private void loadTransactionForEdit() {
+        TransactionWithCategory transaction =
+                transactionDao.getTransactionWithCategoryById(editingTransactionId);
+
+        if (transaction == null) {
+            Toast.makeText(requireContext(), "Không tìm thấy giao dịch", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        currentType = transaction.getType();
+
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            java.util.Date date = sdf.parse(transaction.getTransactionDate());
+            if (date != null) {
+                selectedCalendar.setTime(date);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        edtAmount.setText(String.format(Locale.getDefault(), "%,.0f", transaction.getAmount()));
+        edtNote.setText(transaction.getNote() != null ? transaction.getNote() : "");
+
+        updateDateText();
+        updateTypeUI();
+        loadCategoriesFromDatabase();
+
+        selectedCategory = findCategoryById(transaction.getCategoryId());
+        if (selectedCategory != null) {
+            categoryAdapter.setSelectedCategoryId(transaction.getCategoryId());
+        }
+    }
+    private void setupDeleteButton() {
+        if (tvDelete == null) {
+            return;
+        }
+
+        tvDelete.setVisibility(isEditMode ? View.VISIBLE : View.GONE);
+        tvDelete.setOnClickListener(v -> confirmDeleteTransaction());
+    }
+
+    private void confirmDeleteTransaction() {
+        if (!isEditMode || editingTransactionId <= 0) {
+            return;
+        }
+
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Xóa giao dịch")
+                .setMessage("Bạn có chắc muốn xóa giao dịch này không?")
+                .setNegativeButton("Hủy", null)
+                .setPositiveButton("Xóa", (dialog, which) -> deleteCurrentTransaction())
+                .show();
+    }
+    private void deleteCurrentTransaction() {
+        int result = transactionDao.deleteTransaction(editingTransactionId);
+
+        if (result > 0) {
+            Toast.makeText(requireContext(), "Xóa giao dịch thành công", Toast.LENGTH_SHORT).show();
+            closeFormAndBack();
+        } else {
+            Toast.makeText(requireContext(), "Xóa giao dịch thất bại", Toast.LENGTH_SHORT).show();
         }
     }
 }

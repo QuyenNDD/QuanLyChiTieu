@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
 
         tabCalendar.setOnClickListener(v -> {
             setSelectedTab(1);
-            replaceFragment(SimpleTextFragment.newInstance("Màn hình Lịch"));
+            replaceFragment(new com.example.quanlychitieu.fragment.CalendarFragment());
         });
 
         tabReport.setOnClickListener(v -> {
