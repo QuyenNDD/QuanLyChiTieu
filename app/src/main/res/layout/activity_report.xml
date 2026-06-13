@@ -20,6 +20,16 @@
             android:textSize="18sp"
             android:textStyle="bold"
             android:layout_centerInParent="true"/>
+        <ImageButton
+            android:id="@+id/btnExportExcel"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/export_excel"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Xuất báo cáo Excel"
+            android:clickable="true"
+            android:focusable="true"
+            app:tint="@android:color/black"/>
     </RelativeLayout>
 
     <RelativeLayout

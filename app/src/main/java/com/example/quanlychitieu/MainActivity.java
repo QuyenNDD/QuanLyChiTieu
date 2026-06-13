@@ -14,6 +14,7 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 
 import com.example.quanlychitieu.adapter.MoreFragment;
+import com.example.quanlychitieu.fragment.BudgetFragment;
 import com.example.quanlychitieu.fragment.ReportFragment;
 import com.example.quanlychitieu.utils.SimpleTextFragment;
 
@@ -80,7 +81,7 @@ public class MainActivity extends BaseActivity {
 
         tabBudget.setOnClickListener(v -> {
             setSelectedTab(3);
-            replaceFragment(SimpleTextFragment.newInstance("Màn hình Ngân sách"));
+            replaceFragment(new BudgetFragment());
         });
 
         tabMore.setOnClickListener(v -> {

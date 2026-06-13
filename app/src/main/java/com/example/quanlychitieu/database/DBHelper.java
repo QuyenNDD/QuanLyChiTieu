@@ -72,6 +72,20 @@ public class DBHelper extends SQLiteOpenHelper {
                 "FOREIGN KEY(user_id) REFERENCES users(id))";
         db.execSQL(createTableOtp);
 
+        //Ngân sách
+        // 5. Bảng Budgets (Ngân sách)
+        String createTableBudgets = "CREATE TABLE budgets (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "user_id INTEGER NOT NULL, " +
+                "category_id INTEGER NOT NULL, " +
+                "month INTEGER NOT NULL, " +
+                "year INTEGER NOT NULL, " +
+                "limit_amount REAL NOT NULL, " +
+                "created_at DATETIME DEFAULT CURRENT_TIMESTAMP, " +
+                "FOREIGN KEY(user_id) REFERENCES users(id), " +
+                "FOREIGN KEY(category_id) REFERENCES categories(id))";
+        db.execSQL(createTableBudgets);
+
 //         Kích hoạt nạp dữ liệu mẫu
 //        insertSampleData(db);
     }
@@ -94,43 +108,43 @@ public class DBHelper extends SQLiteOpenHelper {
 //        // 3. Chèn dữ liệu Giao dịch (Transactions) mẫu
 //
 //        // --- THU NHẬP (INCOME) ---
-//        // Ngày 05/04/2026: Nhận lương
+//        // Ngày 05/06/2026: Nhận lương
 //        db.execSQL("INSERT INTO transactions (user_id, category_id, amount, note, transaction_date, type) " +
-//                "VALUES (1, 6, 15000000, 'Lương tháng 04/2026', '2026-04-05', 'INCOME')");
+//                "VALUES (1, 6, 15000000, 'Lương tháng 04/2026', '2026-06-05', 'INCOME')");
 //
-//        // Ngày 15/04/2026: Nhận thưởng
+//        // Ngày 15/06/2026: Nhận thưởng
 //        db.execSQL("INSERT INTO transactions (user_id, category_id, amount, note, transaction_date, type) " +
-//                "VALUES (1, 7, 2000000, 'Thưởng dự án A', '2026-04-15', 'INCOME')");
+//                "VALUES (1, 7, 2000000, 'Thưởng dự án A', '2026-06-15', 'INCOME')");
 //
 //        // --- CHI TIÊU (EXPENSE) ---
-//        // Ngày 10/04/2026: (Nhiều giao dịch cùng ngày để test nhóm theo ngày)
+//        // Ngày 10/06/2026: (Nhiều giao dịch cùng ngày để test nhóm theo ngày)
 //        db.execSQL("INSERT INTO transactions (user_id, category_id, amount, note, transaction_date, type) " +
-//                "VALUES (1, 1, 50000, 'Phở sáng', '2026-04-10', 'EXPENSE')");
+//                "VALUES (1, 1, 50000, 'Phở sáng', '2026-06-10', 'EXPENSE')");
 //        db.execSQL("INSERT INTO transactions (user_id, category_id, amount, note, transaction_date, type) " +
-//                "VALUES (1, 1, 35000, 'Cà phê Highland', '2026-04-10', 'EXPENSE')");
+//                "VALUES (1, 1, 35000, 'Cà phê Highland', '2026-06-10', 'EXPENSE')");
 //        db.execSQL("INSERT INTO transactions (user_id, category_id, amount, note, transaction_date, type) " +
-//                "VALUES (1, 2, 45000, 'Grab đi làm', '2026-04-10', 'EXPENSE')");
+//                "VALUES (1, 2, 45000, 'Grab đi làm', '2026-06-10', 'EXPENSE')");
 //
-//        // Ngày 12/04/2026
+//        // Ngày 12/06/2026
 //        db.execSQL("INSERT INTO transactions (user_id, category_id, amount, note, transaction_date, type) " +
-//                "VALUES (1, 3, 500000, 'Mua giày mới', '2026-04-12', 'EXPENSE')");
+//                "VALUES (1, 3, 500000, 'Mua giày mới', '2026-06-12', 'EXPENSE')");
 //        db.execSQL("INSERT INTO transactions (user_id, category_id, amount, note, transaction_date, type) " +
-//                "VALUES (1, 5, 200000, 'Xem phim rạp', '2026-04-12', 'EXPENSE')");
+//                "VALUES (1, 5, 200000, 'Xem phim rạp', '2026-06-12', 'EXPENSE')");
 //
-//        // Ngày 20/04/2026
+//        // Ngày 20/06/2026
 //        db.execSQL("INSERT INTO transactions (user_id, category_id, amount, note, transaction_date, type) " +
-//                "VALUES (1, 4, 300000, 'Mua thuốc cảm', '2026-04-20', 'EXPENSE')");
+//                "VALUES (1, 4, 300000, 'Mua thuốc cảm', '2026-06-20', 'EXPENSE')");
 //        db.execSQL("INSERT INTO transactions (user_id, category_id, amount, note, transaction_date, type) " +
-//                "VALUES (1, 1, 150000, 'Ăn tối với bạn', '2026-04-20', 'EXPENSE')");
+//                "VALUES (1, 1, 150000, 'Ăn tối với bạn', '2026-06-20', 'EXPENSE')");
 //    }
-//
-//    // Hàm phụ trợ để viết code sạch hơn và tránh lỗi chuỗi SQL
-//    private void insertCategory(SQLiteDatabase db, int id, int userId, String name, String type, String icon, long color) {
-//        String sql = "INSERT OR IGNORE INTO categories (id, user_id, name, type, icon, color_value, created_at, updated_at) " +
-//                "VALUES (?, ?, ?, ?, ?, ?, strftime('%s','now') * 1000, strftime('%s','now') * 1000)";
-//
-//        db.execSQL(sql, new Object[]{id, userId, name, type, icon, (int)color});
-//    }
+
+    // Hàm phụ trợ để viết code sạch hơn và tránh lỗi chuỗi SQL
+    private void insertCategory(SQLiteDatabase db, int id, int userId, String name, String type, String icon, long color) {
+        String sql = "INSERT OR IGNORE INTO categories (id, user_id, name, type, icon, color_value, created_at, updated_at) " +
+                "VALUES (?, ?, ?, ?, ?, ?, strftime('%s','now') * 1000, strftime('%s','now') * 1000)";
+
+        db.execSQL(sql, new Object[]{id, userId, name, type, icon, (int)color});
+    }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
