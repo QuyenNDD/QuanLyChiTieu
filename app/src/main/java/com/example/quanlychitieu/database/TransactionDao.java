@@ -76,7 +76,10 @@ public class TransactionDao {
         int result = db.delete(
                 "transactions",
                 "id = ? AND user_id = ?",
-                new String[]{String.valueOf(transactionId), String.valueOf(userId)}
+                new String[]{
+                        String.valueOf(transactionId),
+                        String.valueOf(userId)
+                }
         );
 
         db.close();
@@ -172,7 +175,7 @@ public class TransactionDao {
                 "COALESCE(c.icon, 'ic_category_deleted') AS category_icon, " +
                 "COALESCE(c.color_value, -7829368) AS category_color " +
                 "FROM transactions t " +
-                "LEFT JOIN categories c ON t.category_id = c.id " +
+                "LEFT JOIN categories c ON t.category_id = c.id AND c.user_id = t.user_id " +
                 "WHERE t.user_id = ? AND t.transaction_date LIKE ? " +
                 "ORDER BY t.transaction_date DESC, t.id DESC";
 
@@ -203,7 +206,7 @@ public class TransactionDao {
         db.close();
         return groupedMap;
     }
-    public TransactionWithCategory getTransactionWithCategoryById(int transactionId) {
+    public TransactionWithCategory getTransactionWithCategoryById(int transactionId, int userId) {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
 
         String sql = "SELECT t.id, t.user_id, t.category_id, t.amount, t.note, t.transaction_date, t.type, " +
@@ -211,10 +214,14 @@ public class TransactionDao {
                 "COALESCE(c.icon, 'ic_category_deleted') AS category_icon, " +
                 "COALESCE(c.color_value, -7829368) AS category_color " +
                 "FROM transactions t " +
-                "LEFT JOIN categories c ON t.category_id = c.id " +
-                "WHERE t.id = ?";
+                "LEFT JOIN categories c ON t.category_id = c.id AND c.user_id = t.user_id " +
+                "WHERE t.id = ? AND t.user_id = ?";
 
-        Cursor cursor = db.rawQuery(sql, new String[]{String.valueOf(transactionId)});
+        Cursor cursor = db.rawQuery(sql, new String[]{
+                String.valueOf(transactionId),
+                String.valueOf(userId)
+        });
+
         TransactionWithCategory transaction = null;
 
         if (cursor.moveToFirst()) {
@@ -239,7 +246,6 @@ public class TransactionDao {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
         ContentValues values = new ContentValues();
-        values.put("user_id", transaction.getUserId());
         values.put("category_id", transaction.getCategoryId());
         values.put("amount", transaction.getAmount());
         values.put("note", transaction.getNote());
@@ -249,20 +255,13 @@ public class TransactionDao {
         int result = db.update(
                 "transactions",
                 values,
-                "id = ?",
-                new String[]{String.valueOf(transaction.getId())}
+                "id = ? AND user_id = ?",
+                new String[]{
+                        String.valueOf(transaction.getId()),
+                        String.valueOf(transaction.getUserId())
+                }
         );
 
-        db.close();
-        return result;
-    }
-    public int deleteTransaction(int transactionId) {
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-        int result = db.delete(
-                "transactions",
-                "id = ?",
-                new String[]{String.valueOf(transactionId)}
-        );
         db.close();
         return result;
     }

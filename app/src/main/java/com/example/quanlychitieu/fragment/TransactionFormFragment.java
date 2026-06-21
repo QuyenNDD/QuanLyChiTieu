@@ -193,6 +193,8 @@ public class TransactionFormFragment extends Fragment {
     }
 
     private void setupListeners() {
+        setupAmountInput();
+
         tvExpenseTab.setOnClickListener(v -> {
             currentType = TYPE_EXPENSE;
             selectedCategory = null;
@@ -229,6 +231,30 @@ public class TransactionFormFragment extends Fragment {
     private void setupSkipButton() {
         tvSkip.setVisibility(showSkipButton ? View.VISIBLE : View.GONE);
         tvSkip.setOnClickListener(v -> closeFormAndBack());
+    }
+
+    private void setupAmountInput() {
+        edtAmount.setOnFocusChangeListener((v, hasFocus) -> {
+            String amountText = edtAmount.getText().toString().trim();
+
+            if (hasFocus) {
+                if ("0".equals(amountText)) {
+                    edtAmount.setText("");
+                }
+            } else {
+                if (TextUtils.isEmpty(amountText)) {
+                    edtAmount.setText("0");
+                }
+            }
+        });
+
+        edtAmount.setOnClickListener(v -> {
+            String amountText = edtAmount.getText().toString().trim();
+
+            if ("0".equals(amountText)) {
+                edtAmount.setText("");
+            }
+        });
     }
 
     private void updateTypeUI() {
@@ -281,9 +307,14 @@ public class TransactionFormFragment extends Fragment {
     }
 
     private void loadCategoriesFromDatabase() {
+        currentUserId = SessionManager.getCurrentUserId(requireContext());
+
         categoryList.clear();
+
+        // Chỉ lấy danh mục của user đang đăng nhập
         categoryList.addAll(categoryDao.getCategoriesByType(currentUserId, currentType));
 
+        // Item này chỉ để mở màn hình quản lý danh mục
         Category editItem = new Category("Chỉnh sửa", currentType);
         editItem.setIcon("ic_arrow_right");
         editItem.setColorValue(0xFFFFFFFF);
@@ -370,7 +401,7 @@ public class TransactionFormFragment extends Fragment {
     }
 
     private void clearFormAfterSave() {
-        edtAmount.setText("");
+        edtAmount.setText("0");
         edtNote.setText("");
         selectedCategory = null;
         categoryAdapter.clearSelection();
@@ -403,7 +434,7 @@ public class TransactionFormFragment extends Fragment {
     }
     private void loadTransactionForEdit() {
         TransactionWithCategory transaction =
-                transactionDao.getTransactionWithCategoryById(editingTransactionId);
+                transactionDao.getTransactionWithCategoryById(editingTransactionId, currentUserId);
 
         if (transaction == null) {
             Toast.makeText(requireContext(), "Không tìm thấy giao dịch", Toast.LENGTH_SHORT).show();
@@ -456,8 +487,7 @@ public class TransactionFormFragment extends Fragment {
                 .show();
     }
     private void deleteCurrentTransaction() {
-        int result = transactionDao.deleteTransaction(editingTransactionId);
-
+        int result = transactionDao.deleteTransaction(editingTransactionId, currentUserId);
         if (result > 0) {
             Toast.makeText(requireContext(), "Xóa giao dịch thành công", Toast.LENGTH_SHORT).show();
             closeFormAndBack();

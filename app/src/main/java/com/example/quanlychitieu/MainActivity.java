@@ -1,5 +1,6 @@
 package com.example.quanlychitieu;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.widget.ImageView;
@@ -13,7 +14,10 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 
+import com.example.quanlychitieu.activity.LoginActivity;
+import com.example.quanlychitieu.fragment.MoreFragment;
 import com.example.quanlychitieu.fragment.TransactionFormFragment;
+import com.example.quanlychitieu.preference.SessionManager;
 import com.example.quanlychitieu.utils.SimpleTextFragment;
 
 public class MainActivity extends AppCompatActivity {
@@ -25,6 +29,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (!SessionManager.isLoggedIn(this)) {
+            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+            startActivity(intent);
+            finish();
+            return;
+        }
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
@@ -86,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
 
         tabMore.setOnClickListener(v -> {
             setSelectedTab(4);
-            replaceFragment(SimpleTextFragment.newInstance("Màn hình Khác"));
+            replaceFragment(new MoreFragment());
         });
     }
 
