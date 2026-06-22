@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/layoutIconItem"
+    android:layout_width="match_parent"
+    android:layout_height="72dp"
+    android:layout_margin="6dp"
+    android:background="@drawable/bg_icon_option_normal"
+    android:padding="12dp">
+
+    <ImageView
+        android:id="@+id/imgIcon"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_gravity="center"
+        android:contentDescription="Icon category"
+        android:src="@drawable/ic_cat_food"
+        android:scaleType="fitCenter" />
+</FrameLayout>

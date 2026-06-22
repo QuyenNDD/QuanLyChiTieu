@@ -11,15 +11,39 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.QuanLyChiTieu">
+
+        <!-- Màn hình đăng nhập: chạy đầu tiên khi mở app -->
         <activity
-            android:name=".MainActivity"
+            android:name=".activity.LoginActivity"
             android:exported="true">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
         </activity>
+
+        <!-- Màn hình đăng ký -->
+        <activity
+            android:name=".activity.RegisterActivity"
+            android:exported="false" />
+
+        <!-- Màn hình chính sau khi đăng nhập thành công -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="false" />
+
+        <!-- Các màn hình quản lý danh mục hiện tại của bạn -->
+        <activity
+            android:name=".activity.ManageCategoryActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".activity.AddEditCategoryActivity"
+            android:exported="false" />
+
+
     </application>
 
 </manifest>
