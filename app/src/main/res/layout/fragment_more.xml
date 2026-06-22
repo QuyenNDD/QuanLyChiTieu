@@ -1,41 +1,120 @@
-<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/layoutMore"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:gravity="center"
-    android:padding="24dp"
-    android:background="#000000">
+    android:background="#F5F5F5">
 
-    <TextView
-        android:id="@+id/tvMoreTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Khác"
-        android:textColor="#FFFFFF"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="16dp" />
-
-    <TextView
-        android:id="@+id/tvCurrentUser"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Tài khoản"
-        android:textColor="#BDBDBD"
-        android:textSize="16sp"
-        android:layout_marginBottom="32dp" />
-
-    <Button
-        android:id="@+id/btnLogout"
+    <!-- PHẦN 1: THÔNG TIN TÀI KHOẢN -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Đăng xuất"
-        android:textAllCaps="false"
-        android:textSize="18sp"
-        android:textColor="#FFFFFF"
-        android:backgroundTint="#E53935"
-        android:padding="14dp" />
+        android:background="@android:color/white"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="20dp"
+        android:elevation="2dp">
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/imgMainAvatar"
+            android:layout_width="65dp"
+            android:layout_height="65dp"
+            android:src="@drawable/defaut_acount"
+            app:shapeAppearanceOverlay="@style/CircleImage"
+            app:strokeColor="#6200EE"
+            app:strokeWidth="2dp" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvMainUsername"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Username"
+                android:textColor="@android:color/black"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvMainID"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ID: 001"
+                android:textColor="#757575"
+                android:textSize="14sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:text="CÀI ĐẶT"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:textColor="#9E9E9E"/>
+
+    <!-- PHẦN 2: DANH SÁCH CÀI ĐẶT -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/white"
+        android:orientation="vertical"
+        android:elevation="1dp">
+
+        <TextView
+            android:id="@+id/menuProfile"
+            style="@style/SettingsItemStyle"
+            android:text="Hồ sơ" />
+
+        <View android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#EEEEEE"
+            android:layout_marginStart="20dp"/>
+
+        <TextView
+            android:id="@+id/menuTheme"
+            style="@style/SettingsItemStyle"
+            android:text="Chủ đề (Theme)" />
+
+        <View android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#EEEEEE"
+            android:layout_marginStart="20dp"/>
+
+        <TextView
+            android:id="@+id/menuFontSize"
+            style="@style/SettingsItemStyle"
+            android:text="Cỡ chữ" />
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/white"
+        android:orientation="vertical"
+        android:layout_marginBottom="16dp"
+        android:elevation="2dp">
+
+        <TextView
+            android:id="@+id/menuLogout"
+
+            style="@style/SettingsItemStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Đăng xuất"
+            android:textColor="#E53935"
+            android:textStyle="bold" />
+    </LinearLayout>
 
 </LinearLayout>

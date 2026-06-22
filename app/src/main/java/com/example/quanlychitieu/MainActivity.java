@@ -15,12 +15,14 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 
 import com.example.quanlychitieu.activity.LoginActivity;
-import com.example.quanlychitieu.fragment.MoreFragment;
 import com.example.quanlychitieu.fragment.TransactionFormFragment;
 import com.example.quanlychitieu.preference.SessionManager;
+import com.example.quanlychitieu.adapter.MoreFragment;
+import com.example.quanlychitieu.fragment.BudgetFragment;
+import com.example.quanlychitieu.fragment.ReportFragment;
 import com.example.quanlychitieu.utils.SimpleTextFragment;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity {
 
     private LinearLayout tabInput, tabCalendar, tabReport, tabBudget, tabMore;
     private ImageView iconInput, iconCalendar, iconReport, iconBudget, iconMore;
@@ -86,17 +88,17 @@ public class MainActivity extends AppCompatActivity {
 
         tabReport.setOnClickListener(v -> {
             setSelectedTab(2);
-            replaceFragment(SimpleTextFragment.newInstance("Màn hình Báo cáo"));
+            replaceFragment(new ReportFragment());
         });
 
         tabBudget.setOnClickListener(v -> {
             setSelectedTab(3);
-            replaceFragment(SimpleTextFragment.newInstance("Màn hình Ngân sách"));
+            replaceFragment(new BudgetFragment());
         });
 
         tabMore.setOnClickListener(v -> {
-            setSelectedTab(3);
-            replaceFragment(SimpleTextFragment.newInstance("Màn hình Khác"));
+            setSelectedTab(4);
+            replaceFragment(new MoreFragment());
         });
     }
 

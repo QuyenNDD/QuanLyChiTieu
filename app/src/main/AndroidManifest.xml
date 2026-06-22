@@ -11,17 +11,15 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.QuanLyChiTieu">
-
-        <!-- Màn hình đăng nhập: chạy đầu tiên khi mở app -->
         <activity
             android:name=".activity.LoginActivity"
             android:exported="true">
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
         </activity>
 
         <!-- Màn hình đăng ký -->
@@ -44,6 +42,11 @@
             android:exported="false" />
 
 
+        <activity android:name=".ReportCategoryDetailActivity" android:exported="false" />
+        <activity
+            android:name=".ProfileDetailActivity"
+            android:screenOrientation="portrait"
+            android:exported="false"/>
     </application>
 
 </manifest>
