@@ -95,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         tabMore.setOnClickListener(v -> {
-            setSelectedTab(3);
+            setSelectedTab(4);
             replaceFragment(SimpleTextFragment.newInstance("Màn hình Khác"));
         });
     }
